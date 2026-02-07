@@ -1,3 +1,4 @@
+import { Chess } from 'chess.js';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -28,20 +29,24 @@ export default function GameScreen() {
     useEffect(() => {
         if (turn === 'b' && !isCheckmate && !isDraw) {
             setIsAiMoving(true);
-            setTimeout(() => {
-                const bestMove = AIEngine.getBestMove(game);
+
+            // Give a slight delay for realism
+            const timer = setTimeout(() => {
+                // Use a clone for AI calculation to avoid mutating state directly
+                const gameCopy = new Chess(game.fen());
+                const bestMove = AIEngine.getBestMove(gameCopy);
+
                 if (bestMove) {
-                    if (typeof bestMove === 'string') {
-                        game.move(bestMove);
-                        const history = game.history({ verbose: true });
-                        const lastMove = history[history.length - 1];
-                        makeMove(lastMove.from, lastMove.to);
-                    } else {
-                        makeMove(bestMove.from, bestMove.to);
+                    // Apply move to our copy to extract from/to coordinates
+                    const moveResult = gameCopy.move(bestMove);
+                    if (moveResult) {
+                        makeMove(moveResult.from, moveResult.to);
                     }
                 }
                 setIsAiMoving(false);
             }, 600);
+
+            return () => clearTimeout(timer);
         }
 
         if (isCheckmate) {

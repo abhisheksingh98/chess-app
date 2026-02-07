@@ -17,6 +17,7 @@ interface ChessContextType {
 const ChessContext = createContext<ChessContextType | undefined>(undefined);
 
 export const ChessProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    // We use a state to trigger re-renders, but the Chess instance is the source of truth
     const [game, setGame] = useState(new Chess());
     const [fen, setFen] = useState(game.fen());
     const [board, setBoard] = useState(game.board());
@@ -31,9 +32,12 @@ export const ChessProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const makeMove = useCallback((from: string, to: string) => {
         try {
+            // Important: we move on the CURRENT game instance
             const move = game.move({ from, to, promotion: 'q' });
             if (move) {
-                updateState(new Chess(game.fen()));
+                // Then we create a NEW instance from the updated state to force React update
+                const nextGame = new Chess(game.fen());
+                updateState(nextGame);
                 FeedbackService.triggerMoveFeedback(!!move.captured);
                 return move;
             }
