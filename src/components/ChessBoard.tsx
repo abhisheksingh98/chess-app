@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Spacing } from '../constants/Theme';
+import { Colors } from '../constants/Theme';
 import { useChess } from '../context/ChessContext';
 import { ChessPiece } from './ChessPiece';
 
 const { width } = Dimensions.get('window');
-const BOARD_SIZE = width - Spacing.xl;
+const BOARD_SIZE = width;
 const SQUARE_SIZE = BOARD_SIZE / 8;
+const COORDINATE_COLOR_LIGHT = '#769656';
+const COORDINATE_COLOR_DARK = '#eeeed2';
 
 export const ChessBoard: React.FC = () => {
     const { board, turn, makeMove, game } = useChess();
@@ -69,8 +71,24 @@ export const ChessBoard: React.FC = () => {
                     />
                 )}
 
-                {col === 0 && <Text style={[styles.coord, styles.rank, { color: isDark ? Colors.lightSquare : Colors.darkSquare }]}>{8 - row}</Text>}
-                {row === 7 && <Text style={[styles.coord, styles.file, { color: isDark ? Colors.lightSquare : Colors.darkSquare }]}>{String.fromCharCode(97 + col)}</Text>}
+                {col === 0 && (
+                    <Text style={[
+                        styles.coord,
+                        styles.rank,
+                        { color: isDark ? COORDINATE_COLOR_DARK : COORDINATE_COLOR_LIGHT }
+                    ]}>
+                        {8 - row}
+                    </Text>
+                )}
+                {row === 7 && (
+                    <Text style={[
+                        styles.coord,
+                        styles.file,
+                        { color: isDark ? COORDINATE_COLOR_DARK : COORDINATE_COLOR_LIGHT }
+                    ]}>
+                        {String.fromCharCode(97 + col)}
+                    </Text>
+                )}
             </TouchableOpacity>
         );
     };
@@ -90,9 +108,6 @@ const styles = StyleSheet.create({
     board: {
         width: BOARD_SIZE,
         height: BOARD_SIZE,
-        borderWidth: 2,
-        borderColor: '#333',
-        elevation: 8,
     },
     row: { flexDirection: 'row' },
     square: {
@@ -103,21 +118,18 @@ const styles = StyleSheet.create({
     },
     selectedHighlight: {
         backgroundColor: Colors.highlight,
-        opacity: 0.8
     },
     moveDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: 'rgba(0,0,0,0.12)',
-        position: 'absolute',
+        width: SQUARE_SIZE * 0.3,
+        height: SQUARE_SIZE * 0.3,
+        borderRadius: (SQUARE_SIZE * 0.3) / 2,
+        backgroundColor: 'rgba(0,0,0,0.15)',
     },
     coord: {
-        fontSize: 9,
+        fontSize: 10,
         fontWeight: 'bold',
         position: 'absolute',
-        opacity: 0.5,
     },
-    rank: { top: 1, left: 2 },
-    file: { bottom: 1, right: 2 },
+    rank: { top: 2, left: 2 },
+    file: { bottom: 2, right: 2 },
 });

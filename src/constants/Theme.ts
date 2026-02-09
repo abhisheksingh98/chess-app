@@ -1,27 +1,27 @@
 export const Colors = {
     // Brand Colors
-    backgroundPrimary: '#121212',
-    backgroundSecondary: '#1E1E1E',
-    surface: '#2C2B29',
+    backgroundPrimary: '#302e2b', // Chess.com Dark Grey
+    backgroundSecondary: '#262421',
+    surface: '#3b3936',
 
     // Board Colors
-    darkSquare: '#B58863',
-    lightSquare: '#F0D9B5',
-    accentGold: '#D4AF37',
-    accentGreen: '#4C944C',
+    darkSquare: '#769656', // Chess.com Green
+    lightSquare: '#eeeed2', // Chess.com Cream
+    accentGold: '#f7f769', // Chess.com Move Highlight
+    accentGreen: '#bad035', // Chess.com Suggestion
 
     // Text Colors
     textPrimary: '#FFFFFF',
-    textSecondary: '#B58863',
+    textSecondary: '#bababa',
     textMuted: '#808080',
 
     // Actions
-    buttonPrimary: '#B58863',
-    buttonSecondary: '#312E2B',
+    buttonPrimary: '#81b64c', // Chess.com Primary Green Button
+    buttonSecondary: '#454341',
 
     // Check/Highlights
-    highlight: 'rgba(212, 175, 55, 0.4)',
-    danger: '#D32F2F',
+    highlight: 'rgba(247, 247, 105, 0.5)',
+    danger: '#ca3431',
 };
 
 export const Spacing = {

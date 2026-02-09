@@ -14,7 +14,7 @@ import { useChess } from '../context/ChessContext';
 
 export default function HomeScreen() {
     const router = useRouter();
-    const { resetGame } = useChess();
+    const { resetGame, setGameMode } = useChess();
 
     const titleOpacity = useSharedValue(0);
     const buttonY = useSharedValue(100);
@@ -35,7 +35,8 @@ export default function HomeScreen() {
         opacity: buttonOpacity.value,
     }));
 
-    const startNewGame = () => {
+    const startNewGame = (mode: 'ai' | 'local') => {
+        setGameMode(mode);
         resetGame();
         router.push('/(tabs)/game');
     };
@@ -44,29 +45,27 @@ export default function HomeScreen() {
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>
                 <Animated.View style={[styles.header, animatedTitleStyle]}>
-                    <Text style={styles.subtitle}>WELCOME TO</Text>
-                    <Text style={styles.title}>BASIC</Text>
-                    <Text style={styles.title}>CHESS</Text>
+                    <Text style={styles.title}>Play Chess</Text>
                     <View style={styles.titleUnderline} />
                 </Animated.View>
 
                 <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
                     <Button
                         label="Play vs Computer"
-                        onPress={startNewGame}
+                        onPress={() => startNewGame('ai')}
                         style={styles.button}
                     />
                     <Button
-                        label="Local Play"
+                        label="Play a Friend"
                         variant="secondary"
-                        onPress={startNewGame}
+                        onPress={() => startNewGame('local')}
                         style={styles.button}
                     />
                 </Animated.View>
             </View>
 
             <View style={styles.footer}>
-                <Text style={styles.footerText}>SIMPLE EDITION</Text>
+                <Text style={styles.footerText}>inspired by chess.com</Text>
             </View>
         </SafeAreaView>
     );
@@ -84,33 +83,26 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        marginBottom: 60,
-    },
-    subtitle: {
-        ...Typography.label,
-        color: Colors.textMuted,
-        letterSpacing: 4,
-        marginBottom: Spacing.xs,
+        marginBottom: 80,
     },
     title: {
         ...Typography.h1,
-        fontSize: 42,
-        lineHeight: 48,
+        fontSize: 48,
         textAlign: 'center',
-        letterSpacing: 2,
+        color: '#FFF',
     },
     titleUnderline: {
-        width: 60,
+        width: 40,
         height: 4,
-        backgroundColor: Colors.accentGold,
-        marginTop: Spacing.md,
+        backgroundColor: Colors.buttonPrimary,
+        marginTop: Spacing.sm,
         borderRadius: 2,
     },
     buttonContainer: {
-        gap: Spacing.md,
+        gap: Spacing.lg,
     },
     button: {
-        height: 56,
+        height: 64,
     },
     footer: {
         padding: Spacing.lg,
@@ -118,8 +110,9 @@ const styles = StyleSheet.create({
     },
     footerText: {
         ...Typography.label,
-        fontSize: 10,
+        fontSize: 12,
         color: Colors.textMuted,
-        letterSpacing: 2,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
 });

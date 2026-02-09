@@ -7,6 +7,12 @@ interface ChessContextType {
     fen: string;
     board: any[][];
     turn: 'w' | 'b';
+    gameMode: 'ai' | 'local';
+    setGameMode: (mode: 'ai' | 'local') => void;
+    difficulty: 'easy' | 'medium' | 'hard';
+    setDifficulty: (level: 'easy' | 'medium' | 'hard') => void;
+    capturedWhite: string[];
+    capturedBlack: string[];
     makeMove: (from: string, to: string) => Move | null;
     resetGame: () => void;
     isCheck: boolean;
@@ -22,6 +28,10 @@ export const ChessProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [fen, setFen] = useState(game.fen());
     const [board, setBoard] = useState(game.board());
     const [turn, setTurn] = useState(game.turn());
+    const [gameMode, setGameMode] = useState<'ai' | 'local'>('ai');
+    const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+    const [capturedWhite, setCapturedWhite] = useState<string[]>([]);
+    const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
 
     const updateState = useCallback((newGame: Chess) => {
         setGame(newGame);
@@ -35,6 +45,14 @@ export const ChessProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             // Important: we move on the CURRENT game instance
             const move = game.move({ from, to, promotion: 'q' });
             if (move) {
+                if (move.captured) {
+                    const capturedPiece = move.captured;
+                    if (move.color === 'w') {
+                        setCapturedBlack(prev => [...prev, capturedPiece]);
+                    } else {
+                        setCapturedWhite(prev => [...prev, capturedPiece]);
+                    }
+                }
                 // Then we create a NEW instance from the updated state to force React update
                 const nextGame = new Chess(game.fen());
                 updateState(nextGame);
@@ -49,6 +67,8 @@ export const ChessProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const resetGame = useCallback(() => {
         const newGame = new Chess();
+        setCapturedWhite([]);
+        setCapturedBlack([]);
         updateState(newGame);
     }, [updateState]);
 
@@ -57,6 +77,12 @@ export const ChessProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         fen,
         board,
         turn,
+        gameMode,
+        setGameMode,
+        difficulty,
+        setDifficulty,
+        capturedWhite,
+        capturedBlack,
         makeMove,
         resetGame,
         isCheck: game.inCheck(),

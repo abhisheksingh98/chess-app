@@ -60,30 +60,30 @@ const styles = StyleSheet.create({
     button: {
         paddingVertical: Spacing.md,
         paddingHorizontal: Spacing.xl,
-        borderRadius: 8,
+        borderRadius: 4, // More professional, less rounded
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
     },
     btnPrimary: {
         backgroundColor: Colors.buttonPrimary,
+        borderBottomWidth: 4,
+        borderBottomColor: '#6a963f', // Darker green for Chess.com shadow effect
     },
     btnSecondary: {
         backgroundColor: Colors.buttonSecondary,
+        borderBottomWidth: 4,
+        borderBottomColor: '#302e2c',
     },
     btnOutline: {
         backgroundColor: 'transparent',
         borderWidth: 2,
-        borderColor: Colors.buttonPrimary,
+        borderColor: Colors.surface,
     },
     btnText: {
         ...Typography.label,
-        fontSize: 16,
-        letterSpacing: 0.5,
+        fontSize: 18,
+        fontWeight: '800', // Bold Chess.com style
+        textTransform: 'uppercase',
     },
     card: {
         backgroundColor: Colors.backgroundSecondary,

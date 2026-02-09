@@ -11,6 +11,69 @@ const PIECE_VALUES: Record<string, number> = {
     k: 20000,
 };
 
+const PST: Record<string, number[][]> = {
+    p: [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [50, 50, 50, 50, 50, 50, 50, 50],
+        [10, 10, 20, 30, 30, 20, 10, 10],
+        [5, 5, 10, 25, 25, 10, 5, 5],
+        [0, 0, 0, 20, 20, 0, 0, 0],
+        [5, -5, -10, 0, 0, -10, -5, 5],
+        [5, 10, 10, -20, -20, 10, 10, 5],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ],
+    n: [
+        [-50, -40, -30, -30, -30, -30, -40, -50],
+        [-40, -20, 0, 0, 0, 0, -20, -40],
+        [-30, 0, 10, 15, 15, 10, 0, -30],
+        [-30, 5, 15, 20, 20, 15, 5, -30],
+        [-30, 0, 15, 20, 20, 15, 0, -30],
+        [-30, 5, 10, 15, 15, 10, 5, -30],
+        [-40, -20, 0, 5, 5, 0, -20, -40],
+        [-50, -40, -30, -30, -30, -30, -40, -50]
+    ],
+    b: [
+        [-20, -10, -10, -10, -10, -10, -10, -20],
+        [-10, 0, 0, 0, 0, 0, 0, -10],
+        [-10, 0, 5, 10, 10, 5, 0, -10],
+        [-10, 5, 5, 10, 10, 5, 5, -10],
+        [-10, 0, 10, 10, 10, 10, 0, -10],
+        [-10, 10, 10, 10, 10, 10, 10, -10],
+        [-10, 5, 0, 0, 0, 0, 5, -10],
+        [-20, -10, -10, -10, -10, -10, -10, -20]
+    ],
+    r: [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [5, 10, 10, 10, 10, 10, 10, 5],
+        [-5, 0, 0, 0, 0, 0, 0, -5],
+        [-5, 0, 0, 0, 0, 0, 0, -5],
+        [-5, 0, 0, 0, 0, 0, 0, -5],
+        [-5, 0, 0, 0, 0, 0, 0, -5],
+        [-5, 0, 0, 0, 0, 0, 0, -5],
+        [0, 0, 0, 5, 5, 0, 0, 0]
+    ],
+    q: [
+        [-20, -10, -10, -5, -5, -10, -10, -20],
+        [-10, 0, 0, 0, 0, 0, 0, -10],
+        [-10, 0, 5, 5, 5, 5, 0, -10],
+        [-5, 0, 5, 5, 5, 5, 0, -5],
+        [0, 0, 5, 5, 5, 5, 0, -5],
+        [-10, 5, 5, 5, 5, 5, 0, -10],
+        [-10, 0, 5, 0, 0, 0, 0, -10],
+        [-20, -10, -10, -5, -5, -10, -10, -20]
+    ],
+    k: [
+        [-30, -40, -40, -50, -50, -40, -40, -30],
+        [-30, -40, -40, -50, -50, -40, -40, -30],
+        [-30, -40, -40, -50, -50, -40, -40, -30],
+        [-30, -40, -40, -50, -50, -40, -40, -30],
+        [-20, -30, -30, -40, -40, -30, -30, -20],
+        [-10, -20, -20, -20, -20, -20, -20, -10],
+        [20, 20, 0, 0, 0, 0, 20, 20],
+        [20, 30, 10, 0, 0, 10, 30, 20]
+    ]
+};
+
 class AIEngine {
     /**
      * Absolute evaluation. Positive favor White, Negative favor Black.
@@ -23,8 +86,12 @@ class AIEngine {
             for (let j = 0; j < 8; j++) {
                 const piece = board[i][j];
                 if (piece) {
-                    const val = PIECE_VALUES[piece.type] || 0;
-                    totalEvaluation += (piece.color === 'w' ? val : -val);
+                    const absVal = PIECE_VALUES[piece.type] || 0;
+                    const pstTable = PST[piece.type];
+                    const pstVal = pstTable ? (piece.color === 'w' ? pstTable[i][j] : pstTable[7 - i][j]) : 0;
+
+                    const score = absVal + pstVal;
+                    totalEvaluation += (piece.color === 'w' ? score : -score);
                 }
             }
         }
@@ -70,13 +137,16 @@ class AIEngine {
     /**
      * AI is assume to be Black. It will try to MINIMIZE the score.
      */
-    getBestMove(game: any) {
+    getBestMove(game: any, difficulty: 'easy' | 'medium' | 'hard' = 'medium') {
         const moves = game.moves();
         if (moves.length === 0) return null;
 
         let bestMove = null;
         let bestValue = 100000; // Black wants MINIMUM
-        const depth = 2;
+
+        let depth = 2;
+        if (difficulty === 'easy') depth = 1;
+        if (difficulty === 'hard') depth = 3;
 
         // Shuffle moves to add variety
         moves.sort(() => Math.random() - 0.5);

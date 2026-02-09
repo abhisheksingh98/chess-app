@@ -10,7 +10,8 @@ import {
     View
 } from 'react-native';
 import { ChessBoard } from '../../src/components/ChessBoard';
-import { Colors, Spacing, Typography } from '../../src/constants/Theme';
+import { PlayerBar } from '../../src/components/PlayerBar';
+import { Colors, Spacing } from '../../src/constants/Theme';
 import { useChess } from '../../src/context/ChessContext';
 import AIEngine from '../../src/engine/AIEngine';
 
@@ -22,22 +23,22 @@ export default function GameScreen() {
         isCheckmate,
         isDraw,
         resetGame,
-        isCheck
+        isCheck,
+        gameMode,
+        difficulty,
+        setDifficulty,
+        capturedWhite,
+        capturedBlack
     } = useChess();
     const [isAiMoving, setIsAiMoving] = useState(false);
 
     useEffect(() => {
-        if (turn === 'b' && !isCheckmate && !isDraw) {
+        if (gameMode === 'ai' && turn === 'b' && !isCheckmate && !isDraw) {
             setIsAiMoving(true);
-
-            // Give a slight delay for realism
             const timer = setTimeout(() => {
-                // Use a clone for AI calculation to avoid mutating state directly
                 const gameCopy = new Chess(game.fen());
-                const bestMove = AIEngine.getBestMove(gameCopy);
-
+                const bestMove = AIEngine.getBestMove(gameCopy, difficulty);
                 if (bestMove) {
-                    // Apply move to our copy to extract from/to coordinates
                     const moveResult = gameCopy.move(bestMove);
                     if (moveResult) {
                         makeMove(moveResult.from, moveResult.to);
@@ -45,7 +46,6 @@ export default function GameScreen() {
                 }
                 setIsAiMoving(false);
             }, 600);
-
             return () => clearTimeout(timer);
         }
 
@@ -58,26 +58,59 @@ export default function GameScreen() {
                 { text: 'New Game', onPress: resetGame }
             ]);
         }
-    }, [turn, isCheckmate, isDraw]);
+    }, [turn, isCheckmate, isDraw, gameMode, difficulty]);
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
 
-            <View style={styles.header}>
-                <Text style={styles.status}>
-                    {isAiMoving ? 'AI is thinking...' : `${turn === 'w' ? "White's" : "Black's"} Turn`}
-                </Text>
-                {isCheck && <Text style={styles.checkAlert}>CHECK!</Text>}
+            {/* Top Bar: Opponent Info */}
+            <PlayerBar
+                name={gameMode === 'ai' ? `Computer (${difficulty.toUpperCase()})` : "Player 2"}
+                rating={gameMode === 'ai' ? (difficulty === 'hard' ? 2200 : difficulty === 'medium' ? 1200 : 600) : 800}
+                capturedPieces={capturedWhite} // Pieces taken BY opponent (white's pieces)
+                isActive={turn === 'b'}
+                isOpponent
+            />
+
+            {/* Middle: The Board */}
+            <View style={styles.boardWrapper}>
+                <View style={styles.boardContainer}>
+                    <ChessBoard />
+                </View>
+                {isCheck && (
+                    <View style={styles.checkBadge}>
+                        <Text style={styles.checkText}>CHECK</Text>
+                    </View>
+                )}
             </View>
 
-            <View style={styles.boardContainer}>
-                <ChessBoard />
-            </View>
+            {/* Bottom Bar: Player Info */}
+            <PlayerBar
+                name="You"
+                rating={800}
+                capturedPieces={capturedBlack} // Pieces taken BY player (black's pieces)
+                isActive={turn === 'w'}
+            />
 
+            {/* Controls Footer */}
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.resetBtn} onPress={resetGame}>
-                    <Text style={styles.resetBtnText}>RESET GAME</Text>
+                <View style={styles.controlsRow}>
+                    {gameMode === 'ai' && ((['easy', 'medium', 'hard'] as const).map((level) => (
+                        <TouchableOpacity
+                            key={level}
+                            style={[styles.miniBtn, difficulty === level && styles.miniBtnActive]}
+                            onPress={() => setDifficulty(level)}
+                        >
+                            <Text style={[styles.miniBtnText, difficulty === level && styles.miniBtnTextActive]}>
+                                {level.charAt(0).toUpperCase()}
+                            </Text>
+                        </TouchableOpacity>
+                    )))}
+                </View>
+
+                <TouchableOpacity style={styles.actionBtn} onPress={resetGame}>
+                    <Text style={styles.actionBtnText}>NEW GAME</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -89,39 +122,73 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.backgroundPrimary,
     },
-    header: {
-        paddingVertical: Spacing.xl,
-        alignItems: 'center',
-    },
-    status: {
-        ...Typography.h2,
-        color: Colors.textSecondary,
-        letterSpacing: 2,
-    },
-    checkAlert: {
-        ...Typography.label,
-        color: Colors.danger,
-        marginTop: Spacing.xs,
-    },
-    boardContainer: {
+    boardWrapper: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    boardContainer: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.5,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    checkBadge: {
+        position: 'absolute',
+        top: 20,
+        backgroundColor: Colors.danger,
+        paddingHorizontal: 16,
+        paddingVertical: 4,
+        borderRadius: 4,
+    },
+    checkText: {
+        color: '#FFF',
+        fontWeight: 'bold',
+        fontSize: 12,
+    },
     footer: {
-        padding: Spacing.xl,
+        padding: Spacing.md,
+        backgroundColor: Colors.backgroundSecondary,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
-    resetBtn: {
-        backgroundColor: Colors.buttonSecondary,
-        paddingHorizontal: 30,
-        paddingVertical: 12,
-        borderRadius: 8,
+    controlsRow: {
+        flexDirection: 'row',
+    },
+    miniBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 4,
+        backgroundColor: Colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
         borderWidth: 1,
-        borderColor: Colors.surface,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
-    resetBtnText: {
-        ...Typography.label,
-        color: Colors.textPrimary,
+    miniBtnActive: {
+        backgroundColor: Colors.buttonPrimary,
+        borderColor: Colors.buttonPrimary,
+    },
+    miniBtnText: {
+        color: Colors.textSecondary,
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    miniBtnTextActive: {
+        color: '#FFF',
+    },
+    actionBtn: {
+        backgroundColor: Colors.buttonPrimary,
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+        borderRadius: 4,
+    },
+    actionBtnText: {
+        color: '#FFF',
+        fontWeight: 'bold',
+        fontSize: 14,
     },
 });
