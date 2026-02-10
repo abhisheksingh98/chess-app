@@ -78,9 +78,8 @@ class AIEngine {
     /**
      * Absolute evaluation. Positive favor White, Negative favor Black.
      */
-    evaluateBoard(game: any) {
+    evaluateBoard(board: any[][]) {
         let totalEvaluation = 0;
-        const board = game.board();
 
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
@@ -103,11 +102,11 @@ class AIEngine {
      * White is Maximizer, Black is Minimizer.
      */
     minimax(game: any, depth: number, alpha: number, beta: number, isMaximizing: boolean): number {
-        if (depth === 0) return this.evaluateBoard(game);
+        if (depth === 0) return this.evaluateBoard(game.board());
 
         const moves = game.moves();
         if (moves.length === 0) {
-            if (game.inCheck()) return isMaximizing ? -100000 : 100000;
+            if (game.isCheck()) return isMaximizing ? -100000 : 100000;
             return 0;
         }
 

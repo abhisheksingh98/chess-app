@@ -1,4 +1,5 @@
 import { Chess } from 'chess.js';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -10,12 +11,15 @@ import {
     View
 } from 'react-native';
 import { ChessBoard } from '../../src/components/ChessBoard';
+import { EvalBar } from '../../src/components/EvalBar';
+import { MoveList } from '../../src/components/MoveList';
 import { PlayerBar } from '../../src/components/PlayerBar';
 import { Colors, Spacing } from '../../src/constants/Theme';
 import { useChess } from '../../src/context/ChessContext';
 import AIEngine from '../../src/engine/AIEngine';
 
 export default function GameScreen() {
+    const router = useRouter();
     const {
         turn,
         game,
@@ -28,7 +32,10 @@ export default function GameScreen() {
         difficulty,
         setDifficulty,
         capturedWhite,
-        capturedBlack
+        capturedBlack,
+        moveHistory,
+        evaluation,
+        archiveMatch
     } = useChess();
     const [isAiMoving, setIsAiMoving] = useState(false);
 
@@ -36,7 +43,8 @@ export default function GameScreen() {
         if (gameMode === 'ai' && turn === 'b' && !isCheckmate && !isDraw) {
             setIsAiMoving(true);
             const timer = setTimeout(() => {
-                const gameCopy = new Chess(game.fen());
+                const gameCopy = new Chess();
+                gameCopy.loadPgn(game.pgn());
                 const bestMove = AIEngine.getBestMove(gameCopy, difficulty);
                 if (bestMove) {
                     const moveResult = gameCopy.move(bestMove);
@@ -50,11 +58,15 @@ export default function GameScreen() {
         }
 
         if (isCheckmate) {
-            Alert.alert('Game Over', `Checkmate! ${turn === 'w' ? 'Black' : 'White'} wins!`, [
-                { text: 'New Game', onPress: resetGame }
+            archiveMatch();
+            // FeedbackService.vibrateSuccess(); // Assuming haptics in FeedbackService
+            Alert.alert('🏆 Checkmate!', `${turn === 'w' ? 'Black' : 'White'} wins!`, [
+                { text: 'New Game', onPress: resetGame },
+                { text: 'Review Match', onPress: () => router.push('/library') }
             ]);
         } else if (isDraw) {
-            Alert.alert('Game Over', 'It is a draw!', [
+            archiveMatch();
+            Alert.alert('🤝 Draw', 'The game ended in a draw.', [
                 { text: 'New Game', onPress: resetGame }
             ]);
         }
@@ -73,10 +85,15 @@ export default function GameScreen() {
                 isOpponent
             />
 
+            <MoveList moves={moveHistory} />
+
             {/* Middle: The Board */}
             <View style={styles.boardWrapper}>
-                <View style={styles.boardContainer}>
-                    <ChessBoard />
+                <View style={styles.boardRow}>
+                    <EvalBar evaluation={evaluation} />
+                    <View style={styles.boardContainer}>
+                        <ChessBoard />
+                    </View>
                 </View>
                 {isCheck && (
                     <View style={styles.checkBadge}>
@@ -126,6 +143,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    boardRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.sm,
     },
     boardContainer: {
         shadowColor: '#000',
